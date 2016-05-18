@@ -1,0 +1,31 @@
+import json
+import anacodes.ana_wn as aw
+import viscodes.visual as vis
+import anacodes.grabnames as gb
+objs = json.load(open("E:\Data\Genome\meta_data\objects.json"), encoding='ascii')
+imglist = json.load(open("E:\Data\Genome\meta_data\image_data.json"),  encoding='ascii')
+vgimglist, vgclslist = vis.loadlist()
+
+# vgimglist, vgclslist = gb.buildIndex(objs, imglist)
+categ = 'suit'
+vis.visCateg(vgclslist, vgimglist, imglist, objs, categ)
+
+vis.visAllCateg(vgclslist, vgimglist, imglist, objs)
+
+
+
+>>> with open('genome_clothes_list.pickle','w') as f:
+...     pickle.dump([vgimglist, vgclslist],f)
+
+vgimglist, vgclslist = pickle.load( open( 'genome_clothes_list.pickle', 'rb' ) )
+========================================
+# Analyze the distribution
+from collections import Counter
+cnt = Counter(vgclslist)
+gb.count2csv(cnt)
+
+
+=====================================
+from nltk.corpus import wordnet as wn
+
+

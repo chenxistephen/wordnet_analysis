@@ -46,56 +46,55 @@ def prune_entity_tree(synset, wnid_set):
     synset.hyponyms[:] = [s for s in synset.hyponyms if (len(s.hyponyms)!=0 or s.synset.offset() in wnid_set)]
     return synset  
 
-def generate_xml_element(synset):
-    e = etree.Element('synset')
-    e.set('wnid', str(synset.synset.offset()))
-    e.set('name', str(synset.synset.name()))
-    e.set('words', ','.join(synset.synset.lemma_names()))
-    e.set('gloss', str(synset.synset.definition()))
-    for c in synset.hyponyms:
-        ec = generate_xml_element(c)
-        e.append(ec)
-    return e
-    
-def tree2list(synset, namelist):
-    e = etree.Element('synset')
-    #e.set('wnid', str(synset.synset.offset()))
-    namelist.append(str(synset.synset.name()).split('.')[0])
-    #e.set('words', ','.join(synset.synset.lemma_names()))
-    #e.set('gloss', str(synset.synset.definition()))
-    for c in synset.hyponyms:
-        ec = tree2list(c, namelist)
-        # e.append(ec)
-    #return e 
-
-def getTreeList(synset):
-    namelist = []
-    tree2list(synset, namelist)
-    return namelist
-
-def main():
-    #wnIdToSynset = get_all_synsets()
-    imnet_set = imgnet_synset('clothing')
-    imnet_list = getTreeList(imnet_set)
-    
-    print('finished writing the xml file')
-    
-
+   
+def unstr(s):
+    # important, standarized "-" and " " to "_" for string matching
+    s = s.replace('-','_')
+    s = s.replace(' ','_')
+    return s
 
 def wnGetTreeList(entity, treelist, idlist):
+    useLemma = 1
     ename = str(entity.name().split('.')[0])
+    wordType = str(entity.name().split('.')[1]) # noun or verb
+    if wordType != 'n':
+        print ename, " is NOT a noun!"
+        return;
+    ename = unstr(ename) # important, standarized "-" and " " to "_" for string matching
     treelist.append(ename)
     idlist.append(entity.offset())
+    if useLemma:
+        for lm in entity.lemma_names(): # use lemma_names to increase recall
+            lname = str(lm.split('.')[0])
+            # print lname
+            lname = unstr(lname)# important, standarized "-" and " " to "_" for string matching
+            treelist.append(lname)
+    
     for c in entity.hyponyms():
         wnGetTreeList(c, treelist, idlist)
+        
+# def getWordNetList_org(categ='clothing'):
+    # entity = wn.synsets(categ)
+    # entity = entity[0]
+    # treelist = []
+    # idlist = []
+    # wnGetTreeList(entity, treelist, idlist)
+    # return treelist, idlist        
 
 def getWordNetList(categ='clothing'):
     entity = wn.synsets(categ)
-    entity = entity[0]
-    treelist = []
+    i = 0
+    namelist = []
     idlist = []
-    wnGetTreeList(entity, treelist, idlist)
-    return treelist, idlist
+    for en in entity:
+        print categ, "[", str(i), "]:", en
+        i+=1
+        names = []
+        ids = []
+        wnGetTreeList(en, names, ids)
+        namelist += names
+        idlist += ids
+    return namelist, idlist
     
     
     
